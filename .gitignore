@@ -1,0 +1,25 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# renv — librairies installées (non versionnées, lourdes)
+renv/library/
+renv/staging/
+renv/sandbox/
+
+# Cache des données Sirene (générées localement, non versionnées)
+data/cache/
+
+# Données brutes éventuellement téléchargées
+data/raw/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Fichiers générés
+README.html
+
+# Claude Code
+.claude/

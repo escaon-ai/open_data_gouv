@@ -1,0 +1,11 @@
+code_a10,label,naf_prefixes_min,naf_prefixes_max
+AZ,Agriculture / Sylviculture / Pêche,1,3
+BE,Industrie,5,33
+FZ,Construction,41,43
+GI,Commerce / Transport / Hôtellerie-restauration,45,56
+JZ,Information et communication,58,63
+KZ,Finance et assurance,64,66
+LZ,Immobilier,68,68
+MN,Services aux entreprises,69,82
+OQ,Administration / Santé / Enseignement,84,88
+RU,Arts / Loisirs / Autres services,90,99

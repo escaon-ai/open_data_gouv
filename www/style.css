@@ -1,0 +1,81 @@
+/* Style minimal pour l'application */
+
+.leaflet-container {
+  border-radius: 4px;
+}
+
+.card-header {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.sidebar .form-check-label {
+  font-size: 0.82rem;
+}
+
+/* Selects de période plus compacts dans la sidebar */
+.sidebar .form-select {
+  font-size: 0.82rem;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  height: auto;
+}
+
+/* Réduit l'espacement vertical des selects dans fluidRow */
+.sidebar .mb-3 {
+  margin-bottom: 4px !important;
+}
+
+/* Assure que la légende leaflet est lisible */
+.leaflet-control-layers,
+.leaflet-control-attribution {
+  font-size: 11px;
+}
+
+/* Séparateur hr compact (entre Période et Regroupement) */
+.sidebar hr.sidebar-hr-tight {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+/* Contrôle "Total sélection" overlay sur la carte */
+.leaflet-stats-control {
+  background: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.7;
+  border: 1px solid rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+/* Police réduite dans le tableau de détail */
+.detail-dt .dataTable td,
+.detail-dt .dataTable th {
+  font-size: 0.78rem;
+  padding: 3px 6px !important;
+}
+.detail-dt .dataTables_wrapper .dataTables_filter input,
+.detail-dt .dataTables_wrapper .dataTables_length select,
+.detail-dt .dataTables_wrapper .dataTables_info,
+.detail-dt .dataTables_wrapper .dataTables_paginate {
+  font-size: 0.78rem;
+}
+
+/* Rend les popups un peu plus espacés */
+.leaflet-popup-content {
+  min-width: 180px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.leaflet-popup-content table {
+  border-collapse: collapse;
+  margin-top: 4px;
+}
+
+.leaflet-popup-content td,
+.leaflet-popup-content th {
+  padding: 2px 6px;
+  border-bottom: 1px solid #eee;
+}
