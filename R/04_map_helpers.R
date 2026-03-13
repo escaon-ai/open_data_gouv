@@ -7,18 +7,13 @@ library(leaflet)
 library(glue)
 
 # ---- Palette de couleurs ------------------------------------------------
-# Echelle linéaire par morceaux centrée sur ratio = 1 :
-#   ratio ≤ 0.2  → rouge foncé   (0   sur [0,1])
-#   ratio = 1    → jaune/neutre  (0.5 sur [0,1])
-#   ratio ≥ 5    → vert foncé    (1   sur [0,1])
+# Taux de renouvellement = (C - F) / (C + F), dans [-1, +1]
+#   -1  → rouge foncé   (0 sur [0,1])
+#    0  → jaune/neutre  (0.5 sur [0,1])
+#   +1  → vert foncé    (1 sur [0,1])
 
-rescale_ratio <- function(r) {
-  r_clamp <- pmax(0.2, pmin(5, r))
-  ifelse(
-    r_clamp <= 1,
-    (r_clamp - 0.2) / (1 - 0.2) * 0.5,
-    0.5 + (r_clamp - 1) / (5 - 1) * 0.5
-  )
+rescale_taux <- function(t) {
+  (pmax(-1, pmin(1, t)) + 1) / 2
 }
 
 COULEURS_PALETTE <- c(
@@ -31,16 +26,16 @@ make_palette <- function() {
   colorNumeric(palette = COULEURS_PALETTE, domain = c(0, 1), na.color = "#cccccc")
 }
 
-ratio_to_color <- function(pal, ratio_val) {
-  pal(rescale_ratio(ratio_val))
+taux_to_color <- function(pal, taux_val) {
+  pal(rescale_taux(taux_val))
 }
 
-ratio_to_label <- function(n_cre, n_clo) {
+taux_to_label <- function(n_cre, n_clo) {
   dplyr::case_when(
     n_cre == 0 & n_clo == 0 ~ "Aucune activité",
-    n_clo == 0              ~ glue("+{n_cre} créations, 0 clôture"),
-    n_cre == 0              ~ glue("0 création, {n_clo} clôtures"),
-    TRUE ~ glue("{n_cre} créations / {n_clo} clôtures (ratio: {round(n_cre/n_clo, 2)})")
+    n_clo == 0              ~ glue("+{n_cre} créations, 0 clôture — taux : +1,00"),
+    n_cre == 0              ~ glue("0 création, {n_clo} clôtures — taux : -1,00"),
+    TRUE ~ glue("{n_cre} créa. / {n_clo} clôt. (taux : {sprintf('%+.2f', (n_cre - n_clo) / (n_cre + n_clo))})")
   )
 }
 
@@ -64,13 +59,11 @@ aggregate_for_map <- function(data, secteurs, start_ym, end_ym, groupement) {
     group_by(across(all_of(group_vars))) |>
     summarise(n_creations = sum(n_creations), n_clotures = sum(n_clotures), .groups = "drop") |>
     mutate(
-      ratio_val = dplyr::case_when(
+      taux_val = dplyr::case_when(
         n_creations == 0 & n_clotures == 0 ~ NA_real_,
-        n_clotures   == 0                  ~  5,
-        n_creations  == 0                  ~  0,
-        TRUE ~ n_creations / n_clotures
+        TRUE ~ (n_creations - n_clotures) / (n_creations + n_clotures)
       ),
-      label_ratio = ratio_to_label(n_creations, n_clotures)
+      label_taux = taux_to_label(n_creations, n_clotures)
     )
 }
 
@@ -85,12 +78,11 @@ make_popup <- function(nom, agglomeration = NULL, n_cre, n_clo, data_secteurs = 
 
   ratio_txt <- if (n_clo == 0 && n_cre == 0) {
     "<i>Aucune donnée</i>"
-  } else if (n_clo == 0) {
-    glue("<span style='color:green'>+{n_cre} créations, 0 clôture</span>")
   } else {
-    r <- round(n_cre / n_clo, 2)
-    couleur <- if (r >= 1) "green" else "red"
-    glue("<span style='color:{couleur}'>Ratio: {r} ({n_cre} / {n_clo})</span>")
+    taux   <- round((n_cre - n_clo) / (n_cre + n_clo), 2)
+    couleur <- if (taux > 0) "green" else if (taux < 0) "red" else "gray"
+    signe  <- if (taux > 0) "+" else ""
+    glue("<span style='color:{couleur}'>Taux : {signe}{taux} ({n_cre} créa. / {n_clo} clôt.)</span>")
   }
 
   secteurs_html <- ""

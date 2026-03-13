@@ -58,7 +58,7 @@ default_end_month   <- "12"
 # ============================================================
 
 ui <- page_sidebar(
-  title = "Evolution du nombre d'entreprises — agglomérations CARENE & CapAtlantique",
+  title = "Taux de renouvellement des établissements — agglomérations CARENE & CapAtlantique",
   theme = bs_theme(bootswatch = "flatly"),
   tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "style.css")),
 
@@ -112,6 +112,11 @@ ui <- page_sidebar(
         tags$a("Source : Base Sirene — INSEE / data.gouv.fr",
                href   = "https://www.data.gouv.fr/datasets/5b7ffc618b4c4169d30727e0",
                target = "_blank")
+      )
+    ),
+    tags$p(
+      tags$small(class = "text-muted",
+        "Données au niveau établissement (SIRET). Une entreprise multi-sites génère plusieurs événements."
       )
     )
   ),
@@ -193,7 +198,7 @@ server <- function(input, output, session) {
   output$map_title <- renderText({
     n_sect <- length(input$secteurs)
     glue::glue(
-      "Ratio créations/clôtures — {start_ym()} → {end_ym()}",
+      "Taux de renouvellement — {start_ym()} → {end_ym()}",
       " — {n_sect} secteur(s)"
     )
   })
@@ -238,7 +243,6 @@ server <- function(input, output, session) {
 
     tot_cre <- sum(dc$n_creations, na.rm = TRUE)
     tot_clo <- sum(dc$n_clotures,  na.rm = TRUE)
-    ratio   <- if (tot_clo > 0) round(tot_cre / tot_clo, 2) else "—"
 
     proxy <- leafletProxy("map")
     proxy |> clearShapes() |> clearControls()
@@ -248,7 +252,7 @@ server <- function(input, output, session) {
     if (grp == "communes") {
       sf_data <- communes_sf |>
         left_join(
-          dc |> dplyr::select(code_insee, n_creations, n_clotures, ratio_val, label_ratio),
+          dc |> dplyr::select(code_insee, n_creations, n_clotures, taux_val, label_taux),
           by = "code_insee"
         )
 
@@ -261,9 +265,9 @@ server <- function(input, output, session) {
       sf_data$n_creations, sf_data$n_clotures,
       USE.NAMES = FALSE))
 
-      labels      <- unname(paste0(sf_data$nom, " — ", sf_data$label_ratio))
+      labels      <- unname(paste0(sf_data$nom, " — ", sf_data$label_taux))
       layer_ids   <- unname(as.character(sf_data$code_insee))
-      fill_colors <- unname(ratio_to_color(pal_, sf_data$ratio_val))
+      fill_colors <- unname(taux_to_color(pal_, sf_data$taux_val))
 
       proxy |> addPolygons(
         data        = sf_data,
@@ -281,7 +285,7 @@ server <- function(input, output, session) {
     } else {
       sf_data <- agglos_sf |>
         left_join(
-          dc |> dplyr::select(agglomeration, n_creations, n_clotures, ratio_val, label_ratio),
+          dc |> dplyr::select(agglomeration, n_creations, n_clotures, taux_val, label_taux),
           by = "agglomeration"
         )
 
@@ -297,9 +301,9 @@ server <- function(input, output, session) {
       sf_data$agglomeration, sf_data$n_creations, sf_data$n_clotures,
       USE.NAMES = FALSE))
 
-      labels      <- unname(paste0(sf_data$agglomeration, " — ", sf_data$label_ratio))
+      labels      <- unname(paste0(sf_data$agglomeration, " — ", sf_data$label_taux))
       layer_ids   <- unname(as.character(sf_data$agglomeration))
-      fill_colors <- unname(ratio_to_color(pal_, sf_data$ratio_val))
+      fill_colors <- unname(taux_to_color(pal_, sf_data$taux_val))
 
       proxy |> addPolygons(
         data        = sf_data,
@@ -316,19 +320,21 @@ server <- function(input, output, session) {
     }
 
     # Légende couleurs
-    ratio_breaks  <- c(0.2, 0.5, 1, 2, 5)
-    scaled_breaks <- rescale_ratio(ratio_breaks)
+    taux_breaks   <- c(-1, -0.5, 0, 0.5, 1)
+    scaled_breaks <- rescale_taux(taux_breaks)
     proxy |> addLegend(
       position = "bottomright",
       colors   = c(pal_(scaled_breaks), "#cccccc"),
-      labels   = c("≤ 0.2", "0.5", "1 (équilibre)", "2", "≥ 5", "Aucune donnée"),
-      title    = HTML("Ratio<br>créations / clôtures"),
+      labels   = c("-1 (que des fermetures)", "-0,5", "0 (équilibre)", "+0,5", "+1 (que des ouvertures)", "Aucune donnée"),
+      title    = HTML("Taux de<br>renouvellement"),
       opacity  = 0.8
     )
 
+    solde <- tot_cre - tot_clo
+    taux  <- if ((tot_cre + tot_clo) > 0) sprintf("%+.2f", (tot_cre - tot_clo) / (tot_cre + tot_clo)) else "—"
     stats_html <- sprintf(
-      "<div class='leaflet-stats-control'><b>Total sélection</b><br>Créations : <b>%s</b><br>Clôtures : <b>%s</b><br>Ratio : <b>%s</b></div>",
-      tot_cre, tot_clo, ratio
+      "<div class='leaflet-stats-control'><b>Total sélection</b><br>Créations : <b>%s</b><br>Clôtures : <b>%s</b><br>Solde : <b>%+d</b><br>Taux : <b>%s</b></div>",
+      tot_cre, tot_clo, solde, taux
     )
     proxy |> addControl(
       html     = HTML(stats_html),

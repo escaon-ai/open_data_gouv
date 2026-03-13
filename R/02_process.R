@@ -139,11 +139,9 @@ build_aggregated <- function(stock, histo) {
     left_join(communes_ref, by = "code_insee") |>
     left_join(a10_ref |> select(code_a10, label_secteur = label), by = "code_a10") |>
     mutate(
-      ratio_val = dplyr::case_when(
+      taux_renouvellement = dplyr::case_when(
         n_creations == 0 & n_clotures == 0 ~ NA_real_,
-        n_clotures   == 0                  ~  5,
-        n_creations  == 0                  ~  0,
-        TRUE ~ n_creations / n_clotures
+        TRUE ~ (n_creations - n_clotures) / (n_creations + n_clotures)
       ),
       annee_mois_date = as.Date(paste0(annee_mois, "-01"))
     )

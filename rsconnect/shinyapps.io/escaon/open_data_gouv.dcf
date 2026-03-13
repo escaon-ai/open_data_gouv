@@ -5,6 +5,6 @@ account: escaon
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 16892568
-bundleId: 11703806
+bundleId: 11705056
 url: https://escaon.shinyapps.io/open_data_gouv/
 version: 1
