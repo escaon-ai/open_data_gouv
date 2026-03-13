@@ -216,7 +216,7 @@ server <- function(input, output, session) {
     data_agg |>
       filter(annee_mois >= start_ym(), annee_mois <= end_ym(),
              code_a10 %in% input$secteurs) |>
-      group_by(code_insee, code_a10, label_secteur) |>
+      group_by(code_insee, agglomeration, code_a10, label_secteur) |>
       summarise(n_creations = sum(n_creations),
                 n_clotures  = sum(n_clotures), .groups = "drop")
   })
@@ -286,8 +286,13 @@ server <- function(input, output, session) {
         )
 
       popups <- unname(mapply(function(agglo, n_cre, n_clo) {
+        d <- det |>
+          filter(agglomeration == agglo) |>
+          group_by(code_a10, label_secteur) |>
+          summarise(n_creations = sum(n_creations),
+                    n_clotures  = sum(n_clotures), .groups = "drop")
         make_popup(agglo, agglo,
-                   dplyr::coalesce(n_cre, 0L), dplyr::coalesce(n_clo, 0L))
+                   dplyr::coalesce(n_cre, 0L), dplyr::coalesce(n_clo, 0L), d)
       },
       sf_data$agglomeration, sf_data$n_creations, sf_data$n_clotures,
       USE.NAMES = FALSE))

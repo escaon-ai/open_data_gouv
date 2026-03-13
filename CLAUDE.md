@@ -1,7 +1,7 @@
 # Project: data.gouv open data playground
 
 # Role & Tone
-- **Persona:** Act as a Senior Quantitative Developer using R.
+- **Persona:** Act as a senior developer using R.
 - **Tone:** Concise, technical, and direct. Do not explain basic programming syntax. Briefly explain your plan and big steps.
 
 # Coding Standards

@@ -1,8 +1,8 @@
 # Carte interactive — Créations & clôtures d'entreprises
 
-Carte Shiny interactive visualisant le ratio créations/clôtures d'établissements
-sur les bassins d'emploi **CARENE** et **CapAtlantique** (Loire-Atlantique / Morbihan),
-par secteur d'activité (nomenclature A10 INSEE), sur les 5 dernières années complètes.
+Carte interactive visualisant le ratio créations/clôtures d'entreprises sur les
+bassins d'emploi des agglomérations **CARENE** et **CapAtlantique**, par secteur
+d'activité (nomenclature A10 INSEE), sur les 5 dernières années complètes.
 
 ## Fonctionnalités
 
@@ -15,10 +15,36 @@ par secteur d'activité (nomenclature A10 INSEE), sur les 5 dernières années c
 
 ## Données
 
-| Source | Description | Lien |
-|--------|-------------|------|
-| Base Sirene (INSEE) | Créations et clôtures d'établissements | [data.gouv.fr](https://www.data.gouv.fr/datasets/base-sirene-des-entreprises-et-de-leurs-etablissements-siren-siret) |
-| API Geo | Contours communaux | [geo.api.gouv.fr](https://geo.api.gouv.fr) |
+### Base Sirene — INSEE (via data.gouv.fr)
+
+**Dataset :** [Base Sirene des entreprises et de leurs établissements (SIREN, SIRET)](https://www.data.gouv.fr/datasets/base-sirene-des-entreprises-et-de-leurs-etablissements-siren-siret/)
+**Producteur :** Institut national de la statistique et des études économiques (INSEE)
+**Licence :** [Licence Ouverte v2.0 (Etalab)](https://www.etalab.gouv.fr/wp-content/uploads/2017/04/ETALAB-Licence-Ouverte-v2.0.pdf)
+**Fréquence de mise à jour :** mensuelle (publication ~1er du mois, données du mois précédent)
+
+Trois fichiers Parquet sont utilisés, lus directement via DuckDB HTTP avec predicate pushdown sur le code commune :
+
+| Fichier | Resource ID | Taille | Rôle dans l'application |
+|---------|-------------|--------|--------------------------|
+| `StockEtablissement_utf8.parquet` | `a29c1297-1f92-4e2a-8f6b-8c902ce96c5f` | ~2 Go | **Créations** : chaque ligne est un établissement actif. La date de création `dateCreationEtablissement` détermine le mois de création. Fournit aussi `activitePrincipaleEtablissement` (code NAF) et les dénominations. |
+| `StockEtablissementHistorique_utf8.parquet` | `2b3a0c79-f97b-46b8-ac02-8be6c1f01a8c` | ~803 Mo | **Clôtures** : chaque ligne est un changement d'état. Les clôtures sont isolées par le filtre `etatAdministratifEtablissement = 'F'` ET `changementEtatAdministratifEtablissement = 'true'`. La date de clôture est `dateDebut` (date d'entrée en vigueur du changement). |
+| `StockUniteLegale_utf8.parquet` | `350182c9-148a-46e0-8389-76c2ec1374a3` | ~651 Mo | **Noms d'entreprises** : jointure sur SIREN (`substr(siret, 1, 9)`) pour résoudre la dénomination — `denominationUniteLegale`, `denominationUsuelle1UniteLegale`, `nomUniteLegale`, `prenomUsuelUniteLegale` (personnes physiques). |
+
+#### Construction des indicateurs
+
+**Créations (mois M) :** établissements du `StockEtablissement` dont `substr(dateCreationEtablissement, 1, 7) == M` et `codeCommuneEtablissement` dans le périmètre des 25 communes.
+
+**Clôtures (mois M) :** lignes du `StockEtablissementHistorique` avec `etatAdministratifEtablissement = 'F'`, `changementEtatAdministratifEtablissement = 'true'`, et `substr(dateDebut, 1, 7) == M`, croisées avec le `StockEtablissement` pour retrouver la commune et le secteur NAF de l'établissement.
+
+**Ratio :** `n_créations / n_clôtures` sur la période sélectionnée. Cas limites : ratio = 5 si 0 clôture, ratio = 0 si 0 création, NA si aucune activité.
+
+**Secteurs :** code NAF (`activitePrincipaleEtablissement`, format `XX.XXX`) agrégé en 10 macro-secteurs INSEE (nomenclature A10) par plage de codes sur les deux premiers chiffres.
+
+#### Autres sources
+
+| Source | Usage | Lien |
+|--------|-------|------|
+| API Geo (DINUM) | Contours GeoJSON des communes | [geo.api.gouv.fr](https://geo.api.gouv.fr) |
 
 **Périmètre géographique — 25 communes :**
 
