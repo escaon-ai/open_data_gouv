@@ -1,8 +1,12 @@
 # Carte interactive — Créations & clôtures d'entreprises
 
+[![Voir l'application](https://img.shields.io/badge/Shiny-Voir%20l'application-blue?logo=r&logoColor=white)](https://escaon.shinyapps.io/open_data_gouv/)
+
 Carte interactive visualisant le ratio créations/clôtures d'entreprises sur les
 bassins d'emploi des agglomérations **CARENE** et **CapAtlantique**, par secteur
 d'activité (nomenclature A10 INSEE), sur les 5 dernières années complètes.
+
+[![Aperçu de l'application](www/screenshot.png)](https://escaon.shinyapps.io/open_data_gouv/)
 
 ## Fonctionnalités
 
