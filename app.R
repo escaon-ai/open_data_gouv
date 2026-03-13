@@ -25,6 +25,7 @@ message("=== Chargement des géométries ===")
 communes_sf <- load_geometries()
 agglos_sf   <- build_agglo_polygons(communes_sf)
 
+
 # ---- Référentiels globaux -----------------------------------------------
 
 pal         <- make_palette()
@@ -59,7 +60,7 @@ default_end_month   <- "12"
 ui <- page_sidebar(
   title = "Evolution du nombre d'entreprises — agglomérations CARENE & CapAtlantique",
   theme = bs_theme(bootswatch = "flatly"),
-  tags$head(tags$link(rel = "stylesheet", href = "style.css")),
+  tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "style.css")),
 
   sidebar = sidebar(
     width = 300,
@@ -118,15 +119,18 @@ ui <- page_sidebar(
   # ---- Contenu principal : carte (gauche) + tableau (droite) ----
   layout_columns(
     col_widths = c(7, 5),
-
+    
     card(
       card_header(textOutput("map_title")),
       leafletOutput("map", height = "650px")
     ),
-
+    
     card(
       card_header(uiOutput("detail_header")),
-      DT::DTOutput("detail_table")
+      # --- MODIFICATION ICI : Encapsulation du tableau ---
+      div(class = "table-reduite", 
+          DT::DTOutput("detail_table")
+      )
     )
   )
 )
@@ -142,7 +146,7 @@ server <- function(input, output, session) {
   observe({
     req(input$end_year)
     if (input$end_year == max_year) {
-      valid_months <- month_choices[as.integer(names(month_choices)) <= max_month]
+      valid_months <- month_choices[as.integer(month_choices) <= max_month]
       current_end_month <- isolate(input$end_month)
       new_selected <- if (current_end_month %in% names(valid_months)) {
         current_end_month
@@ -222,7 +226,7 @@ server <- function(input, output, session) {
   output$map <- renderLeaflet({
     leaflet(options = leafletOptions(zoomControl = TRUE)) |>
       addProviderTiles(providers$CartoDB.Positron) |>
-      setView(lng = -2.2, lat = 47.3, zoom = 11)
+      setView(lng = -2.280, lat = 47.370, zoom = 10.5)
   })
 
   # ---- Mise à jour de la carte (proxy) -----------------------------------
@@ -374,8 +378,10 @@ server <- function(input, output, session) {
         tags$b(paste("Détail :", zone_name())),
         tags$small(class = "text-muted ms-2",
                    paste0(start_ym(), " → ", end_ym())),
+        downloadButton("download_csv", "CSV",
+                       class = "btn-sm btn-outline-primary ms-3"),
         actionButton("close_detail", "✕",
-                     class = "btn-sm btn-outline-secondary ms-3")
+                     class = "btn-sm btn-outline-secondary ms-2")
       )
     }
   })
@@ -419,8 +425,9 @@ server <- function(input, output, session) {
     } else {
       DT::datatable(
         df,
+        class   = "detail-dt",
         options = list(
-          pageLength = 20,
+          pageLength = 12,
           scrollX    = TRUE,
           order      = list(list(4, "desc"), list(3, "asc")),
           language   = list(
@@ -436,6 +443,19 @@ server <- function(input, output, session) {
       )
     }
   })
+
+  output$download_csv <- downloadHandler(
+    filename = function() {
+      zone <- gsub("[^a-zA-Z0-9_-]", "_", zone_name())
+      sprintf("detail_%s_%s_%s.csv", zone, start_ym(), end_ym())
+    },
+    content = function(file) {
+      df      <- detail_data()
+      indices <- input$detail_table_rows_all
+      if (!is.null(indices)) df <- df[indices, , drop = FALSE]
+      readr::write_csv(df, file)
+    }
+  )
 
   observeEvent(input$close_detail, {
     selected_zone(NULL)

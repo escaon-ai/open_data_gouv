@@ -1,5 +1,6 @@
 /* Style minimal pour l'application */
 
+
 .leaflet-container {
   border-radius: 4px;
 }
@@ -49,17 +50,19 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 
-/* Police réduite dans le tableau de détail */
-.detail-dt .dataTable td,
-.detail-dt .dataTable th {
-  font-size: 0.78rem;
+/* Police réduite dans le tableau de détail encapsulé */
+.table-reduite table td,
+.table-reduite table th {
+  font-size: 0.75rem !important;
   padding: 3px 6px !important;
 }
-.detail-dt .dataTables_wrapper .dataTables_filter input,
-.detail-dt .dataTables_wrapper .dataTables_length select,
-.detail-dt .dataTables_wrapper .dataTables_info,
-.detail-dt .dataTables_wrapper .dataTables_paginate {
-  font-size: 0.78rem;
+
+/* Optionnel : réduire aussi la taille de la barre de recherche et de la pagination */
+.table-reduite .dataTables_wrapper .dataTables_filter input,
+.table-reduite .dataTables_wrapper .dataTables_length select,
+.table-reduite .dataTables_wrapper .dataTables_info,
+.table-reduite .dataTables_wrapper .dataTables_paginate {
+    font-size: 0.8rem !important;
 }
 
 /* Rend les popups un peu plus espacés */
