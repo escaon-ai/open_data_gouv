@@ -24,6 +24,4 @@ if (length(to_install) > 0) {
   install.packages(to_install)
 }
 
-remotes::install_github("trafficonese/leaflet.extras")
-
 cat("Tous les packages sont installés.\n")

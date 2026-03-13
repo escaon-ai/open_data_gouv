@@ -8,8 +8,8 @@ renv/library/
 renv/staging/
 renv/sandbox/
 
-# Cache des données Sirene (générées localement, non versionnées)
-data/cache/
+# Cache des données Sirene — committé pour le déploiement shinyapps.io
+# data/cache/
 
 # Données brutes éventuellement téléchargées
 data/raw/
