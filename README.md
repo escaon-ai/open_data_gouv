@@ -4,27 +4,27 @@
 
 Carte interactive visualisant le **taux de renouvellement des établissements** sur les
 bassins d'emploi des agglomérations **CARENE** et **CapAtlantique**, par secteur
-d'activité (nomenclature A10 INSEE), sur les 5 dernières années complètes.
+d'activité (nomenclature A10 INSEE), à partir de 2021.
 
 [![Aperçu de l'application](www/screenshot.png)](https://escaon.shinyapps.io/open_data_gouv/)
 
 ## Fonctionnalités
 
-- **Filtrage par secteur** : 10 macro-secteurs INSEE (A10) — Agriculture, Industrie, Construction, Commerce/Transport/Hôtellerie, Finance, Immobilier, Services, Santé/Enseignement, etc.
-- **Filtrage par période** : sélection année + mois de début et de fin (données disponibles depuis 2021, défaut : dernière année complète)
+- **Filtre par secteur** : 10 macro-secteurs INSEE (A10) — Agriculture, Industrie, Construction, Commerce/Transport/Hôtellerie, Finance, Immobilier, Services, Santé/Enseignement, etc.
+- **Filtre par période** : sélection année + mois de début et de fin (données disponibles depuis 2021, défaut : dernière année complète)
 - **Regroupement** : vue par commune (25) ou par agglomération (2)
-- **Colorisation** : taux de renouvellement `(C − F) / (C + F)` — rouge (-1, que des fermetures) → jaune (0, équilibre) → vert (+1, que des ouvertures)
-- **Popups** : détail par commune avec tableau récapitulatif par secteur
-- **Tableau de détail** : clic sur une zone → liste nominative des établissements créés/clôturés (SIRET, secteur, date, commune) avec export CSV
+- **Échelle de couleur** : taux de renouvellement `(C − F) / (C + F)` — rouge (-1, que des fermetures) → jaune (0, équilibre) → vert (+1, que des ouvertures)
+- **Popup** : détail par commune avec tableau récapitulatif par secteur
+- **Tableau** : clic sur une zone → liste nominative des établissements créés/clôturés (SIRET, secteur, date, commune) avec export CSV
 
 ## Données
 
 ### Base Sirene — INSEE (via data.gouv.fr)
 
-**Dataset :** [Base Sirene des entreprises et de leurs établissements (SIREN, SIRET)](https://www.data.gouv.fr/datasets/base-sirene-des-entreprises-et-de-leurs-etablissements-siren-siret/)
-**Producteur :** Institut national de la statistique et des études économiques (INSEE)
-**Licence :** [Licence Ouverte v2.0 (Etalab)](https://www.etalab.gouv.fr/wp-content/uploads/2017/04/ETALAB-Licence-Ouverte-v2.0.pdf)
-**Fréquence de mise à jour :** mensuelle (publication ~1er du mois, données du mois précédent)
+- **Dataset :** [Base Sirene des entreprises et de leurs établissements (SIREN, SIRET)](https://www.data.gouv.fr/datasets/base-sirene-des-entreprises-et-de-leurs-etablissements-siren-siret/)
+- **Producteur :** Institut national de la statistique et des études économiques (INSEE)
+- **Licence :** [Licence Ouverte v2.0 (Etalab)](https://www.etalab.gouv.fr/wp-content/uploads/2017/04/ETALAB-Licence-Ouverte-v2.0.pdf)
+- **Fréquence de mise à jour :** mensuelle (publication ~1er du mois, données du mois précédent)
 
 Trois fichiers Parquet sont utilisés, lus directement via DuckDB HTTP :
 
@@ -73,10 +73,10 @@ Trois fichiers Parquet sont utilisés, lus directement via DuckDB HTTP :
 renv::restore()
 
 # 2. Lancer l'application
-shiny::runApp(".")
+shiny::runApp(launch.browser = TRUE)
 ```
 
-> **Première exécution** : le chargement initial télécharge et filtre les fichiers
+> **Première exécution** (en local, ne conserne pas la version en ligne) : le chargement initial télécharge et filtre les fichiers
 > Sirene depuis data.gouv.fr (~3,8 Go au total via DuckDB HTTP).
 > Durée estimée : **15 à 25 minutes** selon la connexion.
 > Les résultats sont mis en cache dans `data/cache/` pour les lancements suivants.
